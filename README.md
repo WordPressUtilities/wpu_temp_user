@@ -3,9 +3,11 @@
 ## Todo
 
 - [ ] Auto Delete Users.
-- [ ] Special User Role.
-- [ ] Block WP-Admin access, REST API & User toolbar.
+- [ ] Block REST API.
 - [ ] Hook for session duration.
+- [x] Special User Role.
+- [x] Block WP-Admin access,
+- [x] Block User toolbar.
 
 ## Example
 
