@@ -3,7 +3,7 @@
 Plugin Name: WPU Temp User
 Plugin URI: https://github.com/WordPressUtilities/wpu_temp_user
 Description: Lib to handle a temporary user
-Version: 0.2.0
+Version: 0.3.0
 Author: Darklg
 Author URI: https://darklg.me/
 License: MIT License
@@ -20,6 +20,9 @@ class WPUTempUser {
         add_action('init', array(&$this, 'user_access'));
         add_action('init', array(&$this, 'create_role'));
         add_action('after_setup_theme', array(&$this, 'remove_admin_bar'));
+        /* Clean up */
+        add_action('init', array(&$this, 'do_fake_cron'));
+        add_action('admin_init', array(&$this, 'trigger_fake_cron'));
     }
 
     public function remove_admin_bar() {
@@ -27,15 +30,18 @@ class WPUTempUser {
             show_admin_bar(false);
         }
     }
+
     /* ----------------------------------------------------------
       Role
     ---------------------------------------------------------- */
 
     public function user_access() {
         $is_temp_user = $this->is_current_user_temp_user();
-
         if (is_admin() && $is_temp_user) {
             return false;
+        }
+        if ($is_temp_user) {
+            $this->mark_user_active(get_current_user_id());
         }
     }
 
@@ -66,7 +72,7 @@ class WPUTempUser {
             $user = wp_get_current_user();
             if ($user->user_login == $user_name) {
                 $this->mark_user_active($user->ID);
-                return;
+                return $user_id;
             }
 
             /* Force Logout */
@@ -83,11 +89,12 @@ class WPUTempUser {
 
         /* Login as user */
         $this->login_as($user_id);
+        return $user_id;
     }
 
     public function generate_temp_user($user_name) {
-        $user_pass = md5(time() . $user_mail);
         $user_mail = $user_name . '@example.com';
+        $user_pass = md5(time() . $user_mail);
         $user_id = wp_create_user($user_name, $user_pass, $user_mail);
         if (is_wp_error($user_id)) {
             echo '<pre>';
@@ -113,6 +120,45 @@ class WPUTempUser {
     }
 
     /* ----------------------------------------------------------
+      Clean
+    ---------------------------------------------------------- */
+
+    public function do_fake_cron() {
+        if (!defined('DOING_CRON') || !DOING_CRON) {
+            return;
+        }
+        $this->trigger_fake_cron();
+    }
+
+    public function trigger_fake_cron() {
+        /* Call every 3600 sec */
+        $t_id = 'wpu_temp_user_last_cron';
+        if (get_transient($t_id)) {
+            return;
+        }
+        set_transient($t_id, '1', 3600);
+        $this->delete_old_users();
+    }
+
+    public function delete_old_users() {
+        $max_last_action = time() - apply_filters('wpu_temp_user__user_delete_after', 1);
+        $users = get_users(array(
+            'meta_query' => array(
+                array(
+                    'key' => '_last_action',
+                    'value' => $max_last_action,
+                    'compare' => "<=",
+                    'type' => 'numeric'
+                )
+            )
+        ));
+        require_once ABSPATH . 'wp-admin/includes/user.php';
+        foreach ($users as $user) {
+            wp_delete_user($user->ID);
+        }
+    }
+
+    /* ----------------------------------------------------------
       Helper
     ---------------------------------------------------------- */
 
@@ -121,7 +167,7 @@ class WPUTempUser {
             return false;
         }
         $user_info = get_userdata(get_current_user_id());
-        return is_array($user_info->roles) && in_array($this->role_id, $user_info->roles);
+        return is_object($user_info) && is_array($user_info->roles) && in_array($this->role_id, $user_info->roles);
     }
 
 }

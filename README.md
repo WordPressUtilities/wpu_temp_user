@@ -2,7 +2,7 @@
 
 ## Todo
 
-- [ ] Auto Delete Users.
+- [x] Auto Delete Users.
 - [ ] Block REST API.
 - [ ] Hook for session duration.
 - [x] Special User Role.
