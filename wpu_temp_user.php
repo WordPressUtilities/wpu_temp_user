@@ -3,7 +3,7 @@
 Plugin Name: WPU Temp User
 Plugin URI: https://github.com/WordPressUtilities/wpu_temp_user
 Description: Lib to handle a temporary user
-Version: 0.3.1
+Version: 0.3.2
 Author: Darklg
 Author URI: https://darklg.me/
 License: MIT License
@@ -117,6 +117,14 @@ class WPUTempUser {
 
     public function mark_user_active($user_id) {
         update_user_meta($user_id, '_last_action', time());
+    }
+
+    public function kill_temp_user($user_id) {
+        require_once ABSPATH . 'wp-admin/includes/user.php';
+        wp_delete_user($user_id);
+        if (get_current_user_id() == $user_id) {
+            wp_logout();
+        }
     }
 
     /* ----------------------------------------------------------
