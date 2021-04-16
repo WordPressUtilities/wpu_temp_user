@@ -3,7 +3,7 @@
 Plugin Name: WPU Temp User
 Plugin URI: https://github.com/WordPressUtilities/wpu_temp_user
 Description: Lib to handle a temporary user
-Version: 0.3.2
+Version: 0.4.0
 Author: Darklg
 Author URI: https://darklg.me/
 License: MIT License
@@ -80,7 +80,7 @@ class WPUTempUser {
         }
 
         /* Check user by ID */
-        $user_id = username_exists($user_name);
+        $user_id = $this->username_exists($user_name);
 
         /* No user id : Create a temp user */
         if (!$user_id) {
@@ -90,6 +90,15 @@ class WPUTempUser {
         /* Login as user */
         $this->login_as($user_id);
         return $user_id;
+    }
+
+    public function username_exists($user_name) {
+        global $wpdb;
+        $val = $wpdb->get_var($wpdb->prepare("SELECT ID FROM $wpdb->users WHERE user_login=%s AND NOW()", $user_name));
+        if (is_numeric($val)) {
+            return $val;
+        }
+        return false;
     }
 
     public function generate_temp_user($user_name) {
