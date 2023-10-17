@@ -1,5 +1,7 @@
 # WPU Temp User
 
+[![PHP workflow](https://github.com/WordPressUtilities/wpu_temp_user/actions/workflows/php.yml/badge.svg 'PHP workflow')](https://github.com/WordPressUtilities/wpu_temp_user/actions)
+
 ## Todo
 
 - [x] Auto Delete Users.
@@ -14,6 +16,9 @@
 ```php
 add_action('wp', function () {
     global $WPUTempUser;
-    $WPUTempUser->log_user('id_1234');
+    $log_user = $WPUTempUser->log_user('id_12éééeéé34');
+    if(!$log_user){
+        echo 'Temp User failed';
+    }
 });
 ```

@@ -2,12 +2,16 @@
 /*
 Plugin Name: WPU Temp User
 Plugin URI: https://github.com/WordPressUtilities/wpu_temp_user
+Update URI: https://github.com/WordPressUtilities/wpu_temp_user
 Description: Lib to handle a temporary user
-Version: 0.4.0
+Version: 1.0.0
 Author: Darklg
 Author URI: https://darklg.me/
+Text Domain: wpu_temp_user
+Requires at least: 6.0
+Requires PHP: 8.0
 License: MIT License
-License URI: http://opensource.org/licenses/MIT
+License URI: https://opensource.org/licenses/MIT
 */
 
 class WPUTempUser {
@@ -67,12 +71,15 @@ class WPUTempUser {
 
     public function log_user($user_name) {
 
+        /* Ensure format is correct */
+        $user_name = sanitize_title($user_name);
+
         /* If user is already logged in */
         if (is_user_logged_in()) {
             $user = wp_get_current_user();
             if ($user->user_login == $user_name) {
                 $this->mark_user_active($user->ID);
-                return $user_id;
+                return $user->ID;
             }
 
             /* Force Logout */
@@ -106,15 +113,17 @@ class WPUTempUser {
         $user_pass = md5(time() . $user_mail);
         $user_id = wp_create_user($user_name, $user_pass, $user_mail);
         if (is_wp_error($user_id)) {
-            echo '<pre>';
-            var_dump($user_id->get_error_message());
-            echo '</pre>';
-            die;
+            error_log('WPU Temp User : ' . $user_id->get_error_message());
+            return false;
         }
         return $user_id;
     }
 
     public function login_as($user_id) {
+        if (!$user_id) {
+            return false;
+        }
+
         $user = get_user_by('id', $user_id);
         $user->remove_role('subscriber');
         $user->add_role($this->role_id);
