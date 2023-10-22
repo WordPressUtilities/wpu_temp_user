@@ -4,7 +4,7 @@ Plugin Name: WPU Temp User
 Plugin URI: https://github.com/WordPressUtilities/wpu_temp_user
 Update URI: https://github.com/WordPressUtilities/wpu_temp_user
 Description: Lib to handle a temporary user
-Version: 1.0.0
+Version: 1.0.1
 Author: Darklg
 Author URI: https://darklg.me/
 Text Domain: wpu_temp_user
@@ -32,6 +32,7 @@ class WPUTempUser {
     public function remove_admin_bar() {
         if ($this->is_current_user_temp_user()) {
             show_admin_bar(false);
+            add_filter('show_admin_bar', '__return_false');
         }
     }
 
