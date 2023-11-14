@@ -4,7 +4,7 @@ Plugin Name: WPU Temp User
 Plugin URI: https://github.com/WordPressUtilities/wpu_temp_user
 Update URI: https://github.com/WordPressUtilities/wpu_temp_user
 Description: Lib to handle a temporary user
-Version: 1.0.1
+Version: 1.0.2
 Author: Darklg
 Author URI: https://darklg.me/
 Text Domain: wpu_temp_user
@@ -74,6 +74,9 @@ class WPUTempUser {
 
         /* Ensure format is correct */
         $user_name = sanitize_title($user_name);
+
+        /* Ensure user name is not too long */
+        $user_name = substr($user_name, 0, 60);
 
         /* If user is already logged in */
         if (is_user_logged_in()) {
